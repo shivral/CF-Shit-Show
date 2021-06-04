@@ -28,7 +28,7 @@ lst=list(map(int,input().strip().split()))
 bit=BIT(n)
 lst=sorted(lst)
 for i in range(0,len(lst)):
-	bit.update(i,1)
+	bit.update(i,1)         #u fill em all with ones and this shit works
 print(bit.tree)
 for i in range(0,len(lst)):
 	print("query is ",bit.sum(i))
@@ -37,8 +37,8 @@ for q in range(m):
 	l=0
 	r=n-1
 	val=n-1
-	while l<=r:
-		mid=(l+r)//2
+	while l<=r: #this is bascially bin search for index mfkr
+		mid=(l+r)//2 
 		x=bit.sum(mid)
 		if x>=k:
 			print("x is ", x, k, mid)
