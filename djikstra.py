@@ -1,9 +1,5 @@
-from collections import defaultdict
 import heapq
-from sys import stdin
-
-input = stdin.readline
-
+from collections import defaultdict
 g = defaultdict(list)
 n, m = map(int, input().strip().split())
 for i in range(m):
@@ -12,18 +8,17 @@ for i in range(m):
 d = [float("inf")]*(n+1)
 d[1]=0
 q = [(0, 1)]
-p = [0] * (n + 1)
 heapq.heapify(q)
 while q:
 	u = heapq.heappop(q)
-
+	if d[u[1]]!=u[0]:
+		continue
 
 	for child in g[u[1]]:
 		to = child[1]
 		wt = child[0]
 		if d[u[1]] + wt < d[to]:
 			d[to] = d[u[1]] + wt
-			p[to] = u[1]
 			heapq.heappush(q, (d[to], to))
 
-print(d)
+print(*d[1:])
