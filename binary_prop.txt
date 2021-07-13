@@ -1,0 +1,2 @@
+(a+b)=(a^b)+2*(a&b)
+dorime god sh it
