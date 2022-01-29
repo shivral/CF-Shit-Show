@@ -33,6 +33,7 @@ using namespace __gnu_pbds;
             for(++id;id<size;id+=id&(-id)){
                 tree[id]+=delta;
             }
+          return 0;
         }
 
 
