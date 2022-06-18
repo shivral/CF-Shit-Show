@@ -1,3 +1,4 @@
+#https://atcoder.jp/contests/abc256/submissions/32565921
 import string
 from sys import stdin
 
