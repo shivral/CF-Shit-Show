@@ -1,19 +1,18 @@
-# Very Fast with FastIO template
-from math import log2, ceil
 from sys import stdin
-from bisect import bisect_left as bl
+from bisect import bisect_left as bl, bisect_right as br
 from collections import defaultdict
+from math import ceil, log2
 
 input = stdin.readline
+read = lambda: map(int, input().strip().split())
 
 
-# def lcm(x, y):
-#     return (x * y) // gcd(x, y)
-
+# Function To return left node index
 def left(idx):
     return 2 * idx
 
 
+# Function To return right node index
 def right(idx):
     return 2 * idx + 1
 
@@ -24,30 +23,19 @@ class SegmentTree:
         self.size = len(arr)
         self.tree_size = 2 ** ceil(log2(self.size))
         self.tree = [0] * 2 * self.tree_size
-        self.lazy = [None] * 2 * self.tree_size
+        self.lazy = self.tree.copy()
         for idx in range(self.size):
             self.tree[self.tree_size + idx] = arr[idx]
         for idx in reversed(range(1, self.tree_size)):
             self.tree[idx] = self.tree[left(idx)] + self.tree[right(idx)]
         self.idx, self.left_node, self.right_node = [1, 0, self.size - 1]
 
-    # Update element of array present at index pos with value=new_val and update Segment Tree with the new sum
-    # update(index,new_value)
-    def update(self, pos, new_val):
-        start = self.tree_size + pos
-        self.tree[start] = new_val
-        start = start // 2
-        while start:
-            self.tree[start] = self.tree[left(start)] + self.tree[right(start)]
-            start //= 2
-
     # Return Sum of element present in [range_left,range_right] of array both inclusive
     def range_sum(self, range_left, range_right):
         sum = 0
         range_left += self.tree_size
         range_right += self.tree_size
-        self.lazy_update(range_left)
-        self.lazy_update(range_right)
+        self.lazy_update(range_left, range_right)
         while range_left <= range_right:
             if range_left & 1:
                 self.node_update(range_left // 2)
@@ -61,136 +49,82 @@ class SegmentTree:
             range_left //= 2
         return sum
 
+    # Function to update the changes in parent node and pass the information to child node
     def node_update(self, index):
         for node in [left(index), right(index)]:
-            if self.lazy[node] is not None:
+            if self.lazy[node]:
                 self.tree[node] = self.lazy[node]
-                self.lazy[node] = None
+                self.lazy[node] = 0
                 if node < self.tree_size:
                     self.lazy[left(node)] = self.lazy[right(node)] = self.tree[node] // 2
 
-    def lazy_update(self, index):
-        lst_update = []
-        index //= 2
-        while index:
-            lst_update.append(index)
-            index //= 2
-        for index in reversed(lst_update):
-            if self.lazy[index] is not None:
-                self.tree[index] = self.lazy[index]
-                self.lazy[index] = None
-                self.lazy[left(index)] = self.lazy[right(index)] = self.tree[index] // 2
+    # Lazily updates the stored information to calculate the new information correctly
+    def lazy_update(self, left_index, right_index):
+        left_update = []
+        right_update = []
+        left_index //= 2
+        right_index //= 2
+        while left_index:
+            left_update.append(left_index)
+            right_update.append(right_index)
+            left_index //= 2
+            right_index //= 2
+        for lst_update in [left_update, right_update]:
+            for index in reversed(lst_update):
+                if self.lazy[index]:
+                    self.tree[index] = self.lazy[index]
+                    self.lazy[index] = 0
+                    self.lazy[left(index)] = self.lazy[right(index)] = self.tree[index] // 2
 
-    # Range Update to assign a same value to every element in range [range_left, range_right] both inclusive
+    # Range Update to assign a new_value to every element in range [range_left, range_right] both inclusive
     def range_update(self, range_left, range_right, new_val):
         range_left += self.tree_size
         range_right += self.tree_size
         start_left, start_right = range_left, range_right
-        tree_height = 0
-        self.lazy_update(range_left)
-        self.lazy_update(range_right)
+        # Lazily update the nodes encountered in path (range_left--> index 1) and (range_right --> index 1)
+        self.lazy_update(range_left, range_right)
         while range_left <= range_right:
             if range_left & 1:
-                self.tree[range_left] = new_val * 2 ** tree_height
-                self.lazy[range_left] = None
+                self.tree[range_left] = new_val
+                self.lazy[range_left] = 0
                 if range_left < self.tree_size:
                     self.lazy[left(range_left)] = self.tree[range_left] // 2
                     self.lazy[right(range_left)] = self.tree[range_left] // 2
                 range_left += 1
 
             if not range_right & 1:
-                self.tree[range_right] = new_val * 2 ** tree_height
-                self.lazy[range_right] = None
+                self.tree[range_right] = new_val
+                self.lazy[range_right] = 0
                 if range_right < self.tree_size:
                     self.lazy[left(range_right)] = self.tree[range_right] // 2
                     self.lazy[right(range_right)] = self.tree[range_right] // 2
                 range_right -= 1
-            tree_height += 1
+            new_val *= 2
             range_left //= 2
             range_right //= 2
-        self.sum_update(start_left)
-        self.sum_update(start_right)
+        self.sum_update(start_left, start_right)
 
-    def sum_update(self, index):
-        index = index // 2
-        while index:
-            self.node_update(index)
-            self.tree[index] = self.tree[left(index)] + self.tree[right(index)]
-            index //= 2
-
-#
-# def build(arr):
-#     for i in range(n):
-#         tree[n + i] = arr[i]
-#     for i in range(n - 1, 0, -1):
-#         tree[i] = tree[i << 1] + tree[i << 1 | 1]
-#
-#
-# def updateTreeNode(p, value):
-#     tree[p + n] = value
-#     p = p + n
-#     i = p
-#     while i > 1:
-#         tree[i >> 1] = tree[i] + tree[i ^ 1]
-#         i >>= 1
-#
-#
-# def query(l, r):
-#     res = 0
-#     l += n
-#     r += n
-#     while l < r:
-#         if (l & 1):
-#             res += tree[l]
-#             l += 1
-#         if (r & 1):
-#             r -= 1
-#             res += tree[r]
-#         l >>= 1
-#         r >>= 1
-#     return res
+    # Update Sum information to the parents of newly updated nodes
+    def sum_update(self, start_left, start_right):
+        start_left = start_left // 2
+        start_right = start_right // 2
+        while start_left:
+            self.node_update(start_left)
+            self.node_update(start_right)
+            self.tree[start_left] = self.tree[left(start_left)] + self.tree[right(start_left)]
+            self.tree[start_right] = self.tree[left(start_right)] + self.tree[right(start_right)]
+            start_left //= 2
+            start_right //= 2
 
 
-def two(l, r):
-    return abs(st.range_sum(1, n-1) - 2 * st.range_sum(l, r))
-
-
-# for test in range(int(input())):
-n, q = map(int, input().split())
-n += 1
-lst = [0] + list(map(int, input().split()))
+n, queries = read()
+lst = list(read())
 st = SegmentTree(lst)
-# store = [0] * (n + 1)
-# k = 0
-# 5 4
-# 6 7 3 9 8
-# 2 3
-# 1 4 4 12
-# 2 5
-# 1 1 3 7
-#
-# for ind, el in enumerate(lst):
-#     k += el
-#     store[ind] = k
-# print(store)
-for qu in range(q):
-    s = list(map(int, input().split()))
-    if s[0] == 1:
-        c, l, r, x = s
-        st.range_update(l, r, x)
-        # for i in range(l, r + 1):
-        #     updateTreeNode(i, x)
-        """
-        # for i in range(l, r + 1):
-            # store[i] = store[i - 1] + x
-            # lst[i] = x
-        # for i in range(r + 1, n + 1):
-            # store[i] = store[i - 1] + lst[i]
-        """
-    if s[0] == 2:
-        l = r = s[1]
-        d = two(l, r)
-        while r + 1 < n and d > two(l, r + 1):
-            r += 1
-            d = two(l, r)
-        print(r)
+for q in range(queries):
+    temp = list(read())
+    if temp[0] == 1:
+        c, i, x = temp
+        st.range_update(i - 1, i - 1, x)
+    else:
+        st.range_update(0, n - 1, temp[1])
+    print(st.range_sum(0, n - 1))
