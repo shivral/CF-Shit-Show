@@ -1,3 +1,5 @@
+//1 based indexing and [l,r]
+
 class SparseTable{
     private:
         vector<vector<int>> Table,Table1;
