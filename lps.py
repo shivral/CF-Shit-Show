@@ -26,3 +26,28 @@ class Solution:
                 dp[l][r]+=dp[l][r-1]+dp[l+1][r]-dp[l+1][r-1]
         print(dp)
         return 1
+
+class Solution:
+    def countPalindromicSubsequences(self, s: str) -> int:
+        dp=[]
+        for i in range(len(s)):
+            res=[]
+            for j in range(len(s)):
+                res.append([0]*4)
+            dp.append(res)
+        ab="abcd"
+        mod=10**9+7
+        for l in range(len(s)-1,-1,-1):
+            for al in range(4):
+                if s[l]==ab[al]:
+                    dp[l][l][al]=1
+                for r in range(l+1,len(s)):
+                    if s[l]==s[r] and s[l]==ab[al]:
+                        res=2
+                        for x in range(4):
+                            res+=dp[l+1][r-1][x]
+                        dp[l][r][al]+=res
+                    else:
+                        dp[l][r][al]+=dp[l+1][r][al]+dp[l][r-1][al]-dp[l+1][r-1][al]
+                    dp[l][r][al]%=mod
+        return sum(dp[0][len(s)-1])%mod
