@@ -1,4 +1,4 @@
-class dsu():
+class dsu(): #ta
 	def __init__(self,n):
 		self.parent=[0]*(n)
 		self.sz=[0]*(n)
