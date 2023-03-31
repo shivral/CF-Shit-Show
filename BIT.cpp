@@ -35,6 +35,11 @@ using namespace __gnu_pbds;
             }
           return 0;
         }
+     void clear(){
+            this->tree.clear();
+            this->tree.resize(this->size,0);
+
+        }
 
 
     private:
