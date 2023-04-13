@@ -1,3 +1,4 @@
+https://leetcode.com/problems/number-of-submatrices-that-sum-to-target/description/
 class Solution:
     def ways(self, pizza: List[str], K: int) -> int:
         m, n, MOD = len(pizza), len(pizza[0]), 10 ** 9 + 7
